@@ -18,6 +18,7 @@ PACKAGES=(
     papirus-icon-theme
     gparted
     java-25-openjdk
+    waydroid
 )
 
 
