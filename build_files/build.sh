@@ -17,8 +17,6 @@ PACKAGES=(
     bibata-cursor-themes
     papirus-icon-theme
     mpv
-    gparted
-    java-25-openjdk
 )
 
 
