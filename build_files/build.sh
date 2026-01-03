@@ -10,7 +10,7 @@ set -ouex pipefail
 # https://mirrors.rpmfusion.org/mirrorlist?path=free/fedora/updates/39/x86_64/repoview/index.html&protocol=https&redirect=1
 
 # this installs a package from fedora repos
-dnf5 -y copr enable peterwu/rendezvous
+dnf -y copr enable peterwu/rendezvous
 
 # Base Packages
 PACKAGES=(
@@ -25,13 +25,16 @@ PACKAGES=(
 
 # )
 
-dnf5 install -y --allowerasing \
+dnf install -y --allowerasing \
     --setopt=install_weak_deps=False \
     -x bluefin-readymade-config \
     "${PACKAGES[@]}"
 
 
 # dnf5 remove -y "${UNINSTALL_PACKAGES[@]}"
+
+# Install Additional Packages
+/ctx/build_files/blob_dir/blob/installer.sh
 
 # Use a COPR Example:
 
