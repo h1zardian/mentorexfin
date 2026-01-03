@@ -49,3 +49,6 @@ dnf install -y --allowerasing \
 
 # Removing starship from system bashrc bashconfig, becuse I don't like bling in bash.
 sed -i.bak '/starship init bash/s/^/# /' /etc/bashrc
+
+# Enable local layering by modifying rpm-ostreed.conf
+sed -i 's/# LockLayering=false/LockLayering=false/' /etc/rpm-ostreed.conf
