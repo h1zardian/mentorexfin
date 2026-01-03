@@ -34,7 +34,7 @@ dnf install -y --allowerasing \
 # dnf5 remove -y "${UNINSTALL_PACKAGES[@]}"
 
 # Install Additional Packages
-/ctx/blob_dir/blob_installer.sh
+#/ctx/blob_dir/blob_installer.sh
 
 # Use a COPR Example:
 
