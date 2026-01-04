@@ -11,12 +11,14 @@ set -ouex pipefail
 
 # this installs a package from fedora repos
 dnf -y copr enable peterwu/rendezvous
+dnf -y copr enable alternateved/keyd
 
 # Base Packages
 PACKAGES=(
     bibata-cursor-themes
     papirus-icon-theme
     mpv
+    keyd
 )
 
 
