@@ -112,10 +112,22 @@ jobs:
             ./Containerfile
           # Postfix image name with -custom to make it a little more descriptive
           # Syntax: https://docs.github.com/en/actions/learn-github-actions/expressions#format
-          image: ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}
+          image: ${{ env.IMAGE_NAME }}
           tags: ${{ steps.metadata.outputs.tags }}
           labels: ${{ steps.metadata.outputs.labels }}
           oci: false
+
+      # ADD THIS STEP TO FIX THE ERROR
+      - name: Sync image to root storage
+        run: |
+          # 1. Save the image from User storage to a tarball
+          podman save -o transfer.tar ${{ env.IMAGE_NAME }}:${{ env.DEFAULT_TAG }}
+          
+          # 2. Load the image into Root storage (where Rechunker looks)
+          sudo podman load -i transfer.tar
+          
+          # 3. Cleanup
+          rm transfer.tar
 
       # Rechunk is a script that we use on Universal Blue to make sure there isnt a single huge layer when your image gets published.
       # This does not make your image faster to download, just provides better resumability and fixes a few errors.
@@ -126,7 +138,7 @@ jobs:
         uses: hhd-dev/rechunk@5fbe1d3a639615d2548d83bc888360de6267b1a2 # v1.2.4
         with:
           rechunk: 'ghcr.io/hhd-dev/rechunk:v1.2.4'
-          ref: "${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.DEFAULT_TAG }}"
+          ref: "${{ env.IMAGE_NAME }}:${{ env.DEFAULT_TAG }}"
           prev-ref: "${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.DEFAULT_TAG }}"
           skip_compression: true
           version: ${{ env.CENTOS_VERSION }}
