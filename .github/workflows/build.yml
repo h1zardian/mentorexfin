@@ -117,17 +117,17 @@ jobs:
           labels: ${{ steps.metadata.outputs.labels }}
           oci: false
 
-      # ADD THIS STEP TO FIX THE ERROR
-      - name: Sync image to root storage
-        run: |
-          # 1. Save the image from User storage to a tarball
-          podman save -o transfer.tar ${{ env.IMAGE_NAME }}:${{ env.DEFAULT_TAG }}
+      # This step fixes the error with Rechunker not able to find the image created by buildah
+      # - name: Sync image to root storage
+      #   run: |
+      #     # 1. Save the image from User storage to a tarball
+      #     podman save -o transfer.tar ${{ env.IMAGE_NAME }}:${{ env.DEFAULT_TAG }}
           
-          # 2. Load the image into Root storage (where Rechunker looks)
-          sudo podman load -i transfer.tar
+      #     # 2. Load the image into Root storage (where Rechunker looks)
+      #     sudo podman load -i transfer.tar
           
-          # 3. Cleanup
-          rm transfer.tar
+      #     # 3. Cleanup
+      #     rm transfer.tar
 
       # Rechunk is a script that we use on Universal Blue to make sure there isnt a single huge layer when your image gets published.
       # This does not make your image faster to download, just provides better resumability and fixes a few errors.
@@ -135,10 +135,10 @@ jobs:
       # You can enable it by uncommenting the following lines:
       - name: Run Rechunker
         id: rechunk
-        uses: hhd-dev/rechunk@5fbe1d3a639615d2548d83bc888360de6267b1a2 # v1.2.4
+        uses: ublue-os/legacy-rechunk@a925083d9af7cb04b3e2a6e8c01bfa495f38b710 # v1.0.0
         with:
-          rechunk: 'ghcr.io/hhd-dev/rechunk:v1.2.4'
-          ref: "${{ env.IMAGE_NAME }}:${{ env.DEFAULT_TAG }}"
+          rechunk: 'ghcr.io/ublue-os/legacy-rechunk:v1.0.0-x86_64'
+          ref: "localhost/${{ env.IMAGE_NAME }}:${{ env.DEFAULT_TAG }}"
           prev-ref: "${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.DEFAULT_TAG }}"
           skip_compression: true
           version: ${{ env.CENTOS_VERSION }}
