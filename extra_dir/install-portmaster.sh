@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -ouex pipefail
-
 # ===================================
 # STEP 1: Install Portmaster
 # (install all necessary files)
@@ -52,7 +50,7 @@ echo "        /usr/lib/portmaster/portmaster"
 # ===================================
 
 echo "[+] Registering Portmaster service"
-cat <<EOF > /usr/lib/systemd/system/portmaster.service
+cat <<'EOF' > /usr/lib/systemd/system/portmaster.service
 [Unit]
 Description=Portmaster by Safing
 Documentation=https://safing.io
