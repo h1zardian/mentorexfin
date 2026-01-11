@@ -15,6 +15,8 @@ dnf -y copr enable alternateved/keyd
 
 # Base Packages
 PACKAGES=(
+    libayatana-appindicator-gtk3
+    webkit2gtk4.1
     bibata-cursor-themes
     papirus-icon-theme
     mpv
@@ -40,6 +42,9 @@ mkdir -p /etc/keyd
 cp /ctx/extra_dir/keyd-defaults.conf /etc/keyd/default.conf
 # Ensure correct permissions (readable by root/system)
 chmod 644 /etc/keyd/default.conf
+
+# Install Portmaster
+/ctx/extra_dir/install-portmaster.sh
 
 # Use a COPR Example:
 
