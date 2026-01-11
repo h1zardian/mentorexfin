@@ -35,8 +35,11 @@ dnf install -y --allowerasing \
 
 # dnf5 remove -y "${UNINSTALL_PACKAGES[@]}"
 
-# Install Additional Packages
-#/ctx/blob_dir/blob_installer.sh
+# Configure keyd
+mkdir -p /etc/keyd
+cp /ctx/extra_dir/keyd-defaults.conf /etc/keyd/default.conf
+# Ensure correct permissions (readable by root/system)
+chmod 644 /etc/keyd/default.conf
 
 # Use a COPR Example:
 
@@ -48,6 +51,8 @@ dnf install -y --allowerasing \
 #### Example for enabling a System Unit File
 
 #systemctl enable podman.socket
+systemctl enable keyd
+keyd reload
 
 # Removing starship from system bashrc bashconfig, becuse I don't like bling in bash.
 sed -i.bak '/starship init bash/s/^/# /' /etc/bashrc
