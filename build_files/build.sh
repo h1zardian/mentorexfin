@@ -21,6 +21,7 @@ PACKAGES=(
     papirus-icon-theme
     mpv
     keyd
+    kvantum
 )
 
 
