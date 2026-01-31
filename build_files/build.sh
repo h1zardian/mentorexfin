@@ -21,7 +21,6 @@ PACKAGES=(
     papirus-icon-theme
     mpv
     keyd
-    kvantum
 )
 
 
@@ -53,13 +52,6 @@ chmod 644 /etc/keyd/default.conf
 # dnf5 -y install package
 # Disable COPRs so they don't end up enabled on the final image:
 # dnf5 -y copr disable ublue-os/staging
-
-# Flatpak Themeing Support
-flatpak override \
-    --system \
-    --filesystem=xdg-config/gtk-4.0:ro \
-    --filesystem=xdg-config/gtk-3.0:ro \
-    --filesystem=xdg-data/icons:ro
 
 #### Example for enabling a System Unit File
 
