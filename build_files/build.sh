@@ -62,4 +62,4 @@ systemctl enable keyd
 sed -i.bak '/starship init bash/s/^/# /' /etc/bashrc
 
 # Enable local layering by modifying rpm-ostreed.conf
-sed -i 's/# LockLayering=false/LockLayering=false/' /etc/rpm-ostreed.conf
+# sed -i 's/# LockLayering=false/LockLayering=false/' /etc/rpm-ostreed.conf
