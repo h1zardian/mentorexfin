@@ -130,21 +130,21 @@ Categories=System
 EOF
 
 # Register Portmaster UI to automatically start on login
-echo "[+] Registering Portmaster UI to start on login"
+# echo "[+] Registering Portmaster UI to start on login"
 
-mkdir -p /etc/xdg/autostart
+# mkdir -p /etc/xdg/autostart
 
-cat <<EOF > /etc/xdg/autostart/portmaster-autostart.desktop
-[Desktop Entry]
-Name=Portmaster
-GenericName=Application Firewall Notifier
-Exec=/usr/bin/portmaster --with-prompts --with-notifications --background
-Icon=portmaster
-Terminal=false
-Type=Application
-Categories=System
-NoDisplay=true
-EOF
+# cat <<EOF > /etc/xdg/autostart/portmaster-autostart.desktop
+# [Desktop Entry]
+# Name=Portmaster
+# GenericName=Application Firewall Notifier
+# Exec=/usr/bin/portmaster --with-prompts --with-notifications --background
+# Icon=portmaster
+# Terminal=false
+# Type=Application
+# Categories=System
+# NoDisplay=true
+# EOF
 
 # Register Portmaster icon
 echo "[+] Registering Portmaster icon"
