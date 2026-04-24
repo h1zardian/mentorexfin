@@ -46,14 +46,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-      - name: Mount BTRFS for podman storage
-        id: container-storage-action
-        uses: ublue-os/container-storage-action@911baca08baf30c8654933e9e9723cb399892140 # main
-        continue-on-error: true 
-        with:
-          target-dir: /var/lib/containers
-          mount-opts: compress-force=zstd:2
-
       - name: Get current date
         id: date
         run: |
@@ -99,11 +91,30 @@ jobs:
           labels: ${{ steps.metadata.outputs.labels }}
           oci: false
 
-      - name: Tag for registry
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3
+        if: github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Workaround: copy docker auth to root's home so sudo podman can pull prev-ref if repo is private
+      - name: Copy auth for rechunker
+        if: github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
         run: |
-          for tag in ${{ steps.metadata.outputs.tags }}; do
-            podman tag ${{ env.IMAGE_NAME }}:${{ env.DEFAULT_TAG }} ${{ env.IMAGE_NAME }}:$tag
-          done
+          sudo mkdir -p /root/.docker
+          sudo cp ~/.docker/config.json /root/.docker/config.json || true
+
+      - name: Rechunk Image
+        id: rechunk
+        uses: hhd-dev/rechunk@master
+        with:
+          rechunk: 'ghcr.io/hhd-dev/rechunk:v1.2.4'
+          ref: ${{ env.IMAGE_NAME }}:${{ env.DEFAULT_TAG }}
+          prev-ref: ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.DEFAULT_TAG }}
+          labels: ${{ steps.metadata.outputs.labels }}
+          skip_compression: ${{ github.event_name == 'pull_request' }}
 
       # SBOM (OPTIONAL): Software Bill of Materials generation using Syft
       # Creates a detailed inventory of all software components in the image for supply chain security.
@@ -142,15 +153,15 @@ jobs:
         uses: redhat-actions/push-to-registry@5ed88d269cf581ea9ef6dd6806d01562096bee9c # v2
         if: github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
         id: push
-        env:
-          REGISTRY_USER: ${{ github.actor }}
-          REGISTRY_PASSWORD: ${{ github.token }}
-        with:
-          registry: ${{ env.IMAGE_REGISTRY }}
-          image: ${{ env.IMAGE_NAME }}
-          tags: ${{ steps.metadata.outputs.tags }}
-          username: ${{ env.REGISTRY_USER }}
-          password: ${{ env.REGISTRY_PASSWORD }}
+        run: |
+          for tag in ${{ steps.metadata.outputs.tags }}; do
+            skopeo copy \
+              --dest-creds ${{ github.actor }}:${{ secrets.GITHUB_TOKEN }} \
+              --digestfile ./digest.txt \
+              ${{ steps.rechunk.outputs.ref }} \
+              docker://${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:$tag
+          done
+          echo "digest=$(cat ./digest.txt)" >> $GITHUB_OUTPUT
 
       - name: Install Cosign
         uses: sigstore/cosign-installer@cad07c2e89fa2edd6e2d7bab4c1aa38e53f76003 # v4.1.1
