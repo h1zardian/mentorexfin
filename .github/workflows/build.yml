@@ -100,25 +100,25 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       # Workaround: copy docker auth to root's home so sudo podman can pull prev-ref if repo is private
-      - name: Copy auth for rechunker
-        if: github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
-        run: |
-          sudo mkdir -p /root/.docker
-          sudo cp ~/.docker/config.json /root/.docker/config.json || true
+      # - name: Copy auth for rechunker
+      #   if: github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+      #   run: |
+      #     sudo mkdir -p /root/.docker
+      #     sudo cp ~/.docker/config.json /root/.docker/config.json || true
 
-      - name: Sync Image to Root Podman
-        run: |
-          podman save ${{ env.IMAGE_NAME }}:${{ env.DEFAULT_TAG }} | sudo podman load
+      # - name: Sync Image to Root Podman
+      #   run: |
+      #     podman save ${{ env.IMAGE_NAME }}:${{ env.DEFAULT_TAG }} | sudo podman load
 
-      - name: Rechunk Image
-        id: rechunk
-        uses: hhd-dev/rechunk@master
-        with:
-          rechunk: 'ghcr.io/hhd-dev/rechunk:v1.2.4'
-          ref: localhost/${{ env.IMAGE_NAME }}:${{ env.DEFAULT_TAG }}
-          prev-ref: ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.DEFAULT_TAG }}
-          labels: ${{ steps.metadata.outputs.labels }}
-          skip_compression: ${{ github.event_name == 'pull_request' }}
+      # - name: Rechunk Image
+      #   id: rechunk
+      #   uses: hhd-dev/rechunk@master
+      #   with:
+      #     rechunk: 'ghcr.io/hhd-dev/rechunk:v1.2.4'
+      #     ref: localhost/${{ env.IMAGE_NAME }}:${{ env.DEFAULT_TAG }}
+      #     prev-ref: ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.DEFAULT_TAG }}
+      #     labels: ${{ steps.metadata.outputs.labels }}
+      #     skip_compression: ${{ github.event_name == 'pull_request' }}
 
       # SBOM (OPTIONAL): Software Bill of Materials generation using Syft
       # Creates a detailed inventory of all software components in the image for supply chain security.
