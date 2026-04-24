@@ -106,12 +106,16 @@ jobs:
           sudo mkdir -p /root/.docker
           sudo cp ~/.docker/config.json /root/.docker/config.json || true
 
+      - name: Sync Image to Root Podman
+        run: |
+          podman save ${{ env.IMAGE_NAME }}:${{ env.DEFAULT_TAG }} | sudo podman load
+
       - name: Rechunk Image
         id: rechunk
         uses: hhd-dev/rechunk@master
         with:
           rechunk: 'ghcr.io/hhd-dev/rechunk:v1.2.4'
-          ref: ${{ env.IMAGE_NAME }}:${{ env.DEFAULT_TAG }}
+          ref: localhost/${{ env.IMAGE_NAME }}:${{ env.DEFAULT_TAG }}
           prev-ref: ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.DEFAULT_TAG }}
           labels: ${{ steps.metadata.outputs.labels }}
           skip_compression: ${{ github.event_name == 'pull_request' }}
