@@ -99,27 +99,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Workaround: copy docker auth to root's home so sudo podman can pull prev-ref if repo is private
-      # - name: Copy auth for rechunker
-      #   if: github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
-      #   run: |
-      #     sudo mkdir -p /root/.docker
-      #     sudo cp ~/.docker/config.json /root/.docker/config.json || true
-
-      # - name: Sync Image to Root Podman
-      #   run: |
-      #     podman save ${{ env.IMAGE_NAME }}:${{ env.DEFAULT_TAG }} | sudo podman load
-
-      # - name: Rechunk Image
-      #   id: rechunk
-      #   uses: hhd-dev/rechunk@master
-      #   with:
-      #     rechunk: 'ghcr.io/hhd-dev/rechunk:v1.2.4'
-      #     ref: localhost/${{ env.IMAGE_NAME }}:${{ env.DEFAULT_TAG }}
-      #     prev-ref: ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.DEFAULT_TAG }}
-      #     labels: ${{ steps.metadata.outputs.labels }}
-      #     skip_compression: ${{ github.event_name == 'pull_request' }}
-
       # SBOM (OPTIONAL): Software Bill of Materials generation using Syft
       # Creates a detailed inventory of all software components in the image for supply chain security.
       # To enable:
@@ -145,6 +124,12 @@ jobs:
       #     $SYFT_CMD ${IMAGE}:${DEFAULT_TAG} -o spdx-json=${OUTPUT_PATH}
       #     echo "OUTPUT_PATH=${OUTPUT_PATH}" >> $GITHUB_OUTPUT
 
+      - name: Tag for registry
+        run: |
+          for tag in ${{ steps.metadata.outputs.tags }}; do
+            podman tag ${{ env.IMAGE_NAME }}:${{ env.DEFAULT_TAG }} ${{ env.IMAGE_NAME }}:$tag
+          done
+
       - name: Login to GitHub Container Registry
         uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v3
         if: github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
@@ -154,17 +139,18 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Push To GHCR
+        uses: redhat-actions/push-to-registry@5ed88d269cf581ea9ef6dd6806d01562096bee9c # v2
         if: github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
         id: push
-        run: |
-          for tag in ${{ steps.metadata.outputs.tags }}; do
-            skopeo copy \
-              --dest-creds ${{ github.actor }}:${{ secrets.GITHUB_TOKEN }} \
-              --digestfile ./digest.txt \
-              ${{ steps.rechunk.outputs.ref }} \
-              docker://${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:$tag
-          done
-          echo "digest=$(cat ./digest.txt)" >> $GITHUB_OUTPUT
+        env:
+          REGISTRY_USER: ${{ github.actor }}
+          REGISTRY_PASSWORD: ${{ github.token }}
+        with:
+          registry: ${{ env.IMAGE_REGISTRY }}
+          image: ${{ env.IMAGE_NAME }}
+          tags: ${{ steps.metadata.outputs.tags }}
+          username: ${{ env.REGISTRY_USER }}
+          password: ${{ env.REGISTRY_PASSWORD }}
 
       - name: Install Cosign
         uses: sigstore/cosign-installer@cad07c2e89fa2edd6e2d7bab4c1aa38e53f76003 # v4.1.1
